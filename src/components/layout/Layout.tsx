@@ -63,10 +63,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         // Check for any active membership
         const { data, error } = await supabase
           .from('memberships')
-          .select('id')
+          .select(`
+            id,
+            membership_packages!inner(package_type)
+          `)
           .eq('user_id', user.id)
-          .eq('is_active', true)
-          .limit(1);
+          .eq('is_active', true);
 
         if (!error && data && data.length > 0) {
           setHasApprovedMembership(true);
@@ -95,8 +97,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           setHasPilatesMembership(false);
         }
 
-        // Update QR Code access based on personal training OR pilates membership
-        setHasQRCodeAccess(hasPersonalTraining || (!pilatesError && pilatesData));
+        // Update QR Code access: only show if user has Free Gym membership (package appears locked in membership page)
+        // Check specifically for Free Gym/standard package membership
+        const hasFreeGymMembership = data && data.some(membership => 
+          membership.membership_packages?.package_type === 'free_gym' || 
+          membership.membership_packages?.package_type === 'standard'
+        );
+        
+        setHasQRCodeAccess(hasPersonalTraining || (!pilatesError && pilatesData) || hasFreeGymMembership);
       } catch (error) {
         console.error('Error checking active membership:', error);
         setHasApprovedMembership(false);
