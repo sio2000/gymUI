@@ -1164,6 +1164,16 @@ const Dashboard: React.FC = () => {
                   </div>
               <h2 className="text-xl md:text-3xl font-bold text-gray-900">Πρόοδος προς τους Στόχους</h2>
                 </div>
+
+            {/* Global Notifications for Goals Section */}
+            <div className="space-y-3 mb-6">
+              <div className="text-purple-600 text-sm bg-purple-50 border border-purple-200 rounded-lg p-3 font-medium">
+                🎯 Στο τμήμα "Ορισμός Στόχων" μπορείς να προσθέσεις τους στόχους σου!
+              </div>
+              <div className="text-blue-600 text-sm bg-blue-50 border border-blue-200 rounded-lg p-3 font-medium">
+                💡 Στο τμήμα "Καταχώρηση Μετρήσεων" μπορείς να καταχωρείς τις μετρήσεις σου για να βλέπεις την πρόοδό σου!
+              </div>
+            </div>
             
             <div className="space-y-6 md:space-y-8">
               {/* Weight & Body Fat Goals */}
@@ -1184,12 +1194,6 @@ const Dashboard: React.FC = () => {
                 />
                   ) : (
                     <div>
-                      <div className="text-purple-600 text-sm bg-purple-50 border border-purple-200 rounded-lg p-3 mb-3 font-medium">
-                        🎯 Στο τμήμα "Ορισμός Στόχων" μπορείς να προσθέσεις τους στόχους σου!
-                      </div>
-                      <div className="text-blue-600 text-sm bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3 font-medium">
-                        💡 Καταχώρισε το βάρος σου στο τμήμα "Καταχώρηση Μετρήσεων" για να βλέπεις την πρόοδό σου!
-                      </div>
                       <ProgressBar
                         label="Βάρος"
                         current={60}
@@ -1212,12 +1216,6 @@ const Dashboard: React.FC = () => {
                 />
                   ) : (
                     <div>
-                      <div className="text-purple-600 text-sm bg-purple-50 border border-purple-200 rounded-lg p-3 mb-3 font-medium">
-                        🎯 Στο τμήμα "Ορισμός Στόχων" μπορείς να προσθέσεις τους στόχους σου!
-                      </div>
-                      <div className="text-green-600 text-sm bg-green-50 border border-green-200 rounded-lg p-3 mb-3 font-medium">
-                        💡 Καταχώρισε το λίπος σου στο τμήμα "Καταχώρηση Μετρήσεων" για να βλέπεις την πρόοδό σου!
-                      </div>
                       <ProgressBar
                         label="Λίπος"
                         current={18}
@@ -1250,12 +1248,6 @@ const Dashboard: React.FC = () => {
                     />
                   ) : (
                     <div>
-                      <div className="text-purple-600 text-sm bg-purple-50 border border-purple-200 rounded-lg p-3 mb-3 font-medium">
-                        🎯 Στο τμήμα "Ορισμός Στόχων" μπορείς να προσθέσεις τους στόχους σου!
-                      </div>
-                      <div className="text-emerald-600 text-sm bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-3 font-medium">
-                        💡 Καταχώρισε τα βήματά σου στο τμήμα "Καταχώρηση Μετρήσεων" για να βλέπεις την πρόοδό σου!
-                      </div>
                       <ProgressBar
                         label="Βήματα"
                         current={7500}
@@ -1288,12 +1280,6 @@ const Dashboard: React.FC = () => {
                     />
                   ) : (
                       <div>
-                      <div className="text-purple-600 text-sm bg-purple-50 border border-purple-200 rounded-lg p-3 mb-3 font-medium">
-                        🎯 Στο τμήμα "Ορισμός Στόχων" μπορείς να προσθέσεις τους στόχους σου!
-                      </div>
-                      <div className="text-indigo-600 text-sm bg-indigo-50 border border-indigo-200 rounded-lg p-3 mb-3 font-medium">
-                        💡 Καταχώρισε τις ώρες ύπνου σου στο τμήμα "Καταχώρηση Μετρήσεων" για να βλέπεις την πρόοδό σου!
-                    </div>
                       <ProgressBar
                         label="Ύπνος"
                         current={6}
