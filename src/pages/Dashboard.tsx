@@ -3,21 +3,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { 
   Target,
   Clock,
-  Activity,
   Weight,
   Ruler,
   Heart,
   ChevronDown,
   User,
-  Plus,
   Moon,
   Dumbbell,
   Save,
   Edit3,
   Sparkles
 } from 'lucide-react';
-import { mockLessons } from '@/data/mockData';
-import { getLessonCategoryName, getLessonDifficultyName } from '@/utils';
 import { getAvailableQRCategories } from '@/utils/activeMemberships';
 import { addUserMetric, getUserMetrics, getUserGoals, upsertUserGoal } from '@/utils/profileUtils';
 import { getUserVisitStats, trackPageVisit } from '@/utils/appVisits';
@@ -134,85 +130,6 @@ const ProgressBar: React.FC<{
   );
 };
 
-const LessonCard: React.FC<{
-  lesson: any;
-  onClick?: () => void;
-  index?: number;
-}> = ({ lesson, onClick, index = 0 }) => {
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'cardio': return { bg: 'bg-gradient-to-br from-red-100 to-red-200', text: 'text-red-600', border: 'border-red-200', shadow: 'shadow-red-100' };
-      case 'strength': return { bg: 'bg-gradient-to-br from-blue-100 to-blue-200', text: 'text-blue-600', border: 'border-blue-200', shadow: 'shadow-blue-100' };
-      case 'yoga': return { bg: 'bg-gradient-to-br from-green-100 to-green-200', text: 'text-green-600', border: 'border-green-200', shadow: 'shadow-green-100' };
-      default: return { bg: 'bg-gradient-to-br from-purple-100 to-purple-200', text: 'text-purple-600', border: 'border-purple-200', shadow: 'shadow-purple-100' };
-    }
-  };
-
-  const colors = getCategoryColor(lesson.category);
-
-  return (
-    <div 
-      className={`group relative overflow-hidden bg-white rounded-xl md:rounded-2xl border-2 ${colors.border} hover:shadow-xl transition-all duration-500 cursor-pointer ${colors.shadow} hover:-translate-y-2 hover:scale-105`}
-      onClick={onClick}
-      style={{
-        animationDelay: `${index * 100}ms`,
-        animation: 'fadeInUp 0.6s ease-out forwards',
-        opacity: 0
-      }}
-    >
-      <div 
-        className="absolute inset-0 bg-gradient-to-br from-white via-gray-50/50 to-gray-100/30 opacity-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500"
-      />
-      <div className="relative p-4 md:p-5">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
-          <div className="flex items-center space-x-3 md:space-x-4">
-            <div 
-              className={`p-2 md:p-3 rounded-lg md:rounded-xl ${colors.bg} group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg`}
-            >
-              <Activity className={`h-5 w-5 md:h-6 md:w-6 ${colors.text}`} />
-            </div>
-            <div className="flex-1">
-              <p 
-                className="font-bold text-gray-900 group-hover:text-gray-700 transition-colors text-base md:text-lg"
-                style={{
-                  animationDelay: `${100 + index * 100}ms`,
-                  animation: 'slideInLeft 0.6s ease-out forwards',
-                  opacity: 0,
-                  transform: 'translateX(-20px)'
-                }}
-              >
-                {lesson.name}
-              </p>
-              <p 
-                className="text-xs md:text-sm text-gray-600 font-medium mt-1"
-                style={{
-                  animationDelay: `${200 + index * 100}ms`,
-                  animation: 'slideInLeft 0.6s ease-out forwards',
-                  opacity: 0,
-                  transform: 'translateX(-20px)'
-                }}
-              >
-                {getLessonCategoryName(lesson.category)} • {getLessonDifficultyName(lesson.difficulty)}
-              </p>
-            </div>
-          </div>
-          <div 
-            className="flex justify-between md:block md:text-right"
-            style={{
-              animationDelay: `${300 + index * 100}ms`,
-              animation: 'slideInRight 0.6s ease-out forwards',
-              opacity: 0,
-              transform: 'translateX(20px)'
-            }}
-          >
-            <p className="text-xs md:text-sm font-bold text-blue-600 bg-blue-50 px-2 md:px-3 py-1 rounded-full">{lesson.credits} πιστώση</p>
-            <p className="text-xs text-gray-500 font-medium md:mt-1">{lesson.duration} λεπτά</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // Mobile-Specific Components
 const MobileCollapsibleSection: React.FC<{
@@ -672,7 +589,54 @@ const GoalsSection: React.FC<{
               />
         </div>
             <div className="text-xs md:text-sm text-gray-600 bg-blue-50 rounded-lg p-3">
-              {currentW ? `Είσαι ${currentW} kg, στόχος ${goalW} kg — διαφορά ${diffW} kg. Πάμε δυνατά! 💪` : 'Καταχώρισε πρώτα βάρος για να δούμε πρόοδο.'}
+              {currentW ? (() => {
+                // Ειδικά μηνύματα όταν έχει φτάσει τον στόχο (διαφορά 0.0)
+                if (parseFloat(diffW) === 0) {
+                  const goalAchievedMessages = [
+                    `🎉 ΣΥΓΧΑΡΗΤΗΡΙΑ! Έφτασες τον στόχο σου! ${currentW} kg - Τέλεια! 🏆`,
+                    `🌟 ΕΚΠΛΗΚΤΙΚΟ! Είσαι ακριβώς στα ${currentW} kg που θέλεις! Θαύμα! ✨`,
+                    `🥇 ΠΕΡΙΕΡΓΟ! Στόχος επιτεύχθηκε! ${currentW} kg - Είσαι άψογος! 💎`,
+                    `🎊 ΦΑΝΤΑΣΤΙΚΟ! Έφτασες ακριβώς τον στόχο σου! ${currentW} kg - Μπράβο! 🌈`,
+                    `👑 ΥΠΕΡΟΧΟ! Στόχος ${currentW} kg επιτεύχθηκε! Είσαι ο καλύτερος! ⭐`,
+                    `🎯 ΤΕΛΕΙΟ! Είσαι ακριβώς στα ${currentW} kg που θέλεις! Συγχαρητήρια! 🎪`,
+                    `💫 ΑΠΙΣΤΕΥΤΟ! Στόχος επιτεύχθηκε! ${currentW} kg - Εντυπωσιακό! 🌺`,
+                    `🏅 ΕΚΤΑΚΤΟ! Έφτασες τον στόχο σου! ${currentW} kg - Μπράβο σου! 🔥`,
+                    `⭐ ΘΑΥΜΑΣΙΟ! Στόχος ${currentW} kg επιτεύχθηκε! Είσαι φοβερός! ⚡`,
+                    `🌈 ΑΠΟΛΥΤΟ! Είσαι ακριβώς στα ${currentW} kg που θέλεις! Συγχαρητήρια! 💪`,
+                    `🎊 ΕΚΠΛΗΚΤΙΚΟ! Στόχος επιτεύχθηκε! ${currentW} kg - Είσαι άξιος! 🌟`,
+                    `🏆 ΥΠΕΡΟΧΟ! Έφτασες τον στόχο σου! ${currentW} kg - Μπράβο! 🦁`,
+                    `✨ ΤΕΛΕΙΟ! Στόχος ${currentW} kg επιτεύχθηκε! Είσαι ο χρυσός! 👑`,
+                    `🎯 ΦΑΝΤΑΣΤΙΚΟ! Είσαι ακριβώς στα ${currentW} kg που θέλεις! Συγχαρητήρια! 💎`,
+                    `🌟 ΑΠΙΣΤΕΥΤΟ! Στόχος επιτεύχθηκε! ${currentW} kg - Εντυπωσιακό! 🎪`
+                  ];
+                  return goalAchievedMessages[Math.floor(Math.random() * goalAchievedMessages.length)];
+                }
+                
+                // Κανονικά μηνύματα ενθάρρυνσης για όλες τις άλλες περιπτώσεις
+                const encouragementMessages = [
+                  `Είσαι ${currentW} kg, στόχος ${goalW} kg — διαφορά ${diffW} kg. Πάμε δυνατά! 💪`,
+                  `Βάρος: ${currentW} kg → Στόχος: ${goalW} kg (${diffW} kg διαφορά). Είσαι στο σωστό δρόμο! 🚀`,
+                  `Τρέχεις προς τους ${goalW} kg από τα ${currentW} kg! Μόνο ${diffW} kg ακόμα! ⚡`,
+                  `Εντυπωσιακά! Από ${currentW} kg σε στόχος ${goalW} kg. Διαφορά: ${diffW} kg. Συνέχισε έτσι! 🌟`,
+                  `Τα ${currentW} kg σου είναι βήμα προς τους ${goalW} kg! Διαφορά: ${diffW} kg. Θα τα καταφέρεις! 💫`,
+                  `Βάρος ${currentW} kg → Στόχος ${goalW} kg. Μόνο ${diffW} kg μακριά! Είσαι φανταστικός! 🎯`,
+                  `Είσαι στα ${currentW} kg και στοχεύεις στα ${goalW} kg! Διαφορά: ${diffW} kg. Πάλεψε! ⚔️`,
+                  `Τρέχεις από ${currentW} kg προς ${goalW} kg! Μόλις ${diffW} kg ακόμα! Είσαι μάχη! 🔥`,
+                  `Εντυπωσιακό! ${currentW} kg → ${goalW} kg στόχος! Διαφορά: ${diffW} kg. Θα τα πετύχεις! 🌈`,
+                  `Βάρος ${currentW} kg, στόχος ${goalW} kg. Διαφορά: ${diffW} kg. Είσαι άξιος! 👑`,
+                  `Τα ${currentW} kg σου σε φέρνουν πιο κοντά στους ${goalW} kg! Διαφορά: ${diffW} kg. Συνεχίζεις! 🏃‍♂️`,
+                  `Είσαι στα ${currentW} kg και στοχεύεις στα ${goalW} kg! Μόνο ${diffW} kg ακόμα! Θα τα καταφέρεις! ⭐`,
+                  `Βάρος ${currentW} kg → Στόχος ${goalW} kg. Διαφορά: ${diffW} kg. Είσαι ο χρυσός! 🥇`,
+                  `Τρέχεις προς τους ${goalW} kg από τα ${currentW} kg! Διαφορά: ${diffW} kg. Είσαι υπέροχος! 🌺`,
+                  `Εντυπωσιακά! Από ${currentW} kg σε στόχος ${goalW} kg. Μόλις ${diffW} kg ακόμα! Δυνατός! 💪`,
+                  `Βάρος ${currentW} kg, στόχος ${goalW} kg! Διαφορά: ${diffW} kg. Είσαι φοβερός! 🦁`,
+                  `Τα ${currentW} kg σου είναι βήμα προς τους ${goalW} kg! Διαφορά: ${diffW} kg. Θα τα πετύχεις! 🎪`,
+                  `Είσαι στα ${currentW} kg και στοχεύεις στα ${goalW} kg! Μόνο ${diffW} kg ακόμα! Είσαι μάχη! ⚡`,
+                  `Βάρος ${currentW} kg → Στόχος ${goalW} kg. Διαφορά: ${diffW} kg. Είσαι ο καλύτερος! 🏆`,
+                  `Τρέχεις προς τους ${goalW} kg από τα ${currentW} kg! Διαφορά: ${diffW} kg. Είσαι άξιος! 🌟`
+                ];
+                return encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
+              })() : 'Καταχώρισε πρώτα βάρος για να δούμε πρόοδο.'}
         </div>
     </div>
         </div>
@@ -827,7 +791,6 @@ const Dashboard: React.FC = () => {
     load();
   }, [user?.id]);
 
-  const recentLessons = mockLessons.slice(0, 4);
   const latest = metrics[0] || {} as any;
   const weightGoal = goals.find((g:any)=>g.goal_type==='weight');
   const bodyFatGoal = goals.find((g:any)=>g.goal_type==='body_fat');
@@ -904,7 +867,7 @@ const Dashboard: React.FC = () => {
       {
         name: 'Βήματα/ημέρα',
         value: typeof latest.steps_per_day === 'number' ? latest.steps_per_day : '—',
-        icon: Activity,
+        icon: Target,
         color: 'text-emerald-600',
         bgColor: 'bg-emerald-100',
         trend: ''
@@ -1220,8 +1183,22 @@ const Dashboard: React.FC = () => {
                   unit="kg"
                 />
                   ) : (
-                    <div className="text-gray-500 text-sm bg-gray-50 rounded-lg p-3">
-                      Καταχώρισε βάρος για να δεις πρόοδο
+                    <div>
+                      <div className="text-purple-600 text-sm bg-purple-50 border border-purple-200 rounded-lg p-3 mb-3 font-medium">
+                        🎯 Στο τμήμα "Ορισμός Στόχων" μπορείς να προσθέσεις τους στόχους σου!
+                      </div>
+                      <div className="text-blue-600 text-sm bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3 font-medium">
+                        💡 Καταχώρισε το βάρος σου στο τμήμα "Καταχώρηση Μετρήσεων" για να βλέπεις την πρόοδό σου!
+                      </div>
+                      <ProgressBar
+                        label="Βάρος"
+                        current={60}
+                        target={75}
+                        color="text-blue-600"
+                        bgColor="bg-gradient-to-r from-blue-300 to-blue-400"
+                        unit="kg"
+                        showPercentage={false}
+                      />
                     </div>
                   )}
                   {latest.body_fat_pct ? (
@@ -1234,8 +1211,22 @@ const Dashboard: React.FC = () => {
                   unit="%"
                 />
                   ) : (
-                    <div className="text-gray-500 text-sm bg-gray-50 rounded-lg p-3">
-                      Καταχώρισε λίπος για να δεις πρόοδο
+                    <div>
+                      <div className="text-purple-600 text-sm bg-purple-50 border border-purple-200 rounded-lg p-3 mb-3 font-medium">
+                        🎯 Στο τμήμα "Ορισμός Στόχων" μπορείς να προσθέσεις τους στόχους σου!
+                      </div>
+                      <div className="text-green-600 text-sm bg-green-50 border border-green-200 rounded-lg p-3 mb-3 font-medium">
+                        💡 Καταχώρισε το λίπος σου στο τμήμα "Καταχώρηση Μετρήσεων" για να βλέπεις την πρόοδό σου!
+                      </div>
+                      <ProgressBar
+                        label="Λίπος"
+                        current={18}
+                        target={12}
+                        color="text-green-600"
+                        bgColor="bg-gradient-to-r from-green-300 to-green-400"
+                        unit="%"
+                        showPercentage={false}
+                      />
             </div>
                   )}
           </div>
@@ -1258,8 +1249,22 @@ const Dashboard: React.FC = () => {
                       unit="steps"
                     />
                   ) : (
-                    <div className="text-gray-500 text-sm bg-gray-50 rounded-lg p-3">
-                      Καταχώρισε βήματα για να δεις πρόοδο
+                    <div>
+                      <div className="text-purple-600 text-sm bg-purple-50 border border-purple-200 rounded-lg p-3 mb-3 font-medium">
+                        🎯 Στο τμήμα "Ορισμός Στόχων" μπορείς να προσθέσεις τους στόχους σου!
+                      </div>
+                      <div className="text-emerald-600 text-sm bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-3 font-medium">
+                        💡 Καταχώρισε τα βήματά σου στο τμήμα "Καταχώρηση Μετρήσεων" για να βλέπεις την πρόοδό σου!
+                      </div>
+                      <ProgressBar
+                        label="Βήματα"
+                        current={7500}
+                        target={10000}
+                        color="text-emerald-600"
+                        bgColor="bg-gradient-to-r from-emerald-300 to-emerald-400"
+                        unit="steps"
+                        showPercentage={false}
+                      />
           </div>
                   )}
                 </div>
@@ -1282,99 +1287,27 @@ const Dashboard: React.FC = () => {
                       unit="ώρες"
                     />
                   ) : (
-                    <div className="text-gray-500 text-sm bg-gray-50 rounded-lg p-3">
-                      Καταχώρισε ύπνο για να δεις πρόοδο
+                      <div>
+                      <div className="text-purple-600 text-sm bg-purple-50 border border-purple-200 rounded-lg p-3 mb-3 font-medium">
+                        🎯 Στο τμήμα "Ορισμός Στόχων" μπορείς να προσθέσεις τους στόχους σου!
                       </div>
+                      <div className="text-indigo-600 text-sm bg-indigo-50 border border-indigo-200 rounded-lg p-3 mb-3 font-medium">
+                        💡 Καταχώρισε τις ώρες ύπνου σου στο τμήμα "Καταχώρηση Μετρήσεων" για να βλέπεις την πρόοδό σου!
+                    </div>
+                      <ProgressBar
+                        label="Ύπνος"
+                        current={6}
+                        target={8}
+                        color="text-indigo-600"
+                        bgColor="bg-gradient-to-r from-indigo-300 to-indigo-400"
+                        unit="ώρες"
+                        showPercentage={false}
+                      />
+                  </div>
                   )}
-                  </div>
-                  </div>
-
-              {/* Nutrition Tips & Wellness */}
-          <div className="space-y-3 md:space-y-4">
-                <h3 className="text-base md:text-lg font-semibold text-gray-800 flex items-center gap-2">
-                  <Heart className="h-4 w-4 md:h-5 md:w-5 text-blue-600" />
-                  Συμβουλές Διατροφής & Ευεξίας
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                  {/* Hydration Tip */}
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg md:rounded-xl p-3 md:p-4 border border-blue-200 hover:shadow-lg transition-all duration-300">
-                    <div className="flex items-start gap-2 md:gap-3">
-                      <div className="p-1.5 md:p-2 bg-blue-200 rounded-lg">
-                        <div className="w-5 h-5 md:w-6 md:h-6 text-blue-600">💧</div>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-800 mb-1 text-sm md:text-base">Υδάτωση</h4>
-                        <p className="text-xs md:text-sm text-gray-600">Πίνε 2-3 λίτρα νερό καθημερινά για βέλτιστη υγεία και ενέργεια</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Protein Tip */}
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg md:rounded-xl p-3 md:p-4 border border-green-200 hover:shadow-lg transition-all duration-300">
-                    <div className="flex items-start gap-2 md:gap-3">
-                      <div className="p-1.5 md:p-2 bg-green-200 rounded-lg">
-                        <div className="w-5 h-5 md:w-6 md:h-6 text-green-600">🥩</div>
-                  </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-800 mb-1 text-sm md:text-base">Πρωτεΐνη</h4>
-                        <p className="text-xs md:text-sm text-gray-600">Καταναλώνε 1.6-2.2g πρωτεΐνης ανά kg σωματικού βάρους</p>
-                  </div>
                 </div>
               </div>
 
-                  {/* Sleep Tip */}
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg md:rounded-xl p-3 md:p-4 border border-purple-200 hover:shadow-lg transition-all duration-300">
-                    <div className="flex items-start gap-2 md:gap-3">
-                      <div className="p-1.5 md:p-2 bg-purple-200 rounded-lg">
-                        <div className="w-5 h-5 md:w-6 md:h-6 text-purple-600">😴</div>
-          </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-800 mb-1 text-sm md:text-base">Ύπνος</h4>
-                        <p className="text-xs md:text-sm text-gray-600">7-9 ώρες ποιοτικού ύπνου για ανάκαμψη και ανάπτυξη</p>
-        </div>
-      </div>
-                  </div>
-
-                  {/* Exercise Tip */}
-                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg md:rounded-xl p-3 md:p-4 border border-orange-200 hover:shadow-lg transition-all duration-300">
-                    <div className="flex items-start gap-2 md:gap-3">
-                      <div className="p-1.5 md:p-2 bg-orange-200 rounded-lg">
-                        <div className="w-5 h-5 md:w-6 md:h-6 text-orange-600">🏃</div>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-800 mb-1 text-sm md:text-base">Άσκηση</h4>
-                        <p className="text-xs md:text-sm text-gray-600">150 λεπτά μέτριας έντασης άσκησης εβδομαδιαίως</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Nutrition Tip */}
-                  <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg md:rounded-xl p-3 md:p-4 border border-red-200 hover:shadow-lg transition-all duration-300">
-                    <div className="flex items-start gap-2 md:gap-3">
-                      <div className="p-1.5 md:p-2 bg-red-200 rounded-lg">
-                        <div className="w-5 h-5 md:w-6 md:h-6 text-red-600">🥗</div>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-800 mb-1 text-sm md:text-base">Διατροφή</h4>
-                        <p className="text-xs md:text-sm text-gray-600">Φρέσκα φρούτα και λαχανικά σε κάθε γεύμα</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Recovery Tip */}
-                  <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg md:rounded-xl p-3 md:p-4 border border-indigo-200 hover:shadow-lg transition-all duration-300">
-                    <div className="flex items-start gap-2 md:gap-3">
-                      <div className="p-1.5 md:p-2 bg-indigo-200 rounded-lg">
-                        <div className="w-5 h-5 md:w-6 md:h-6 text-indigo-600">🧘</div>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-800 mb-1 text-sm md:text-base">Ανάκαμψη</h4>
-                        <p className="text-xs md:text-sm text-gray-600">Διαλείμματα ανάμεσα στις προπονήσεις για αποτελεσματικότητα</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
           </div>
         </div>
       </div>
@@ -1408,8 +1341,8 @@ const Dashboard: React.FC = () => {
             />
           </MobileCollapsibleSection>
 
-          {/* Available Lessons */}
-          <MobileCollapsibleSection title="Διαθέσιμα Μαθήματα" icon={Activity} defaultOpen={false} index={2}>
+          {/* Nutrition Tips & Wellness - Moved from Progress Section */}
+          <MobileCollapsibleSection title="Συμβουλές Διατροφής & Ευεξίας" icon={Heart} defaultOpen={false} index={2}>
             <div 
               className="space-y-6"
               style={{
@@ -1417,27 +1350,85 @@ const Dashboard: React.FC = () => {
                 opacity: 0
               }}
             >
-              {recentLessons.map((lesson, index) => (
-                <LessonCard key={lesson.id} lesson={lesson} index={index} />
-              ))}
-              <button 
-                className="w-full py-4 md:py-5 bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 text-white rounded-xl md:rounded-2xl font-bold text-base md:text-lg hover:from-blue-600 hover:via-blue-700 hover:to-indigo-700 hover:scale-105 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl"
-                style={{
-                  animation: 'fadeInUp 0.6s ease-out 0.4s forwards',
-                  opacity: 0,
-                  transform: 'translateY(20px)'
-                }}
-              >
-                <div
-                  className="animate-bounce"
-                  style={{
-                    animation: 'bounce 2s infinite'
-                  }}
-                >
-                  <Plus className="h-5 w-5 md:h-6 md:w-6" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                {/* Hydration Tip */}
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg md:rounded-xl p-3 md:p-4 border border-blue-200 hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-start gap-2 md:gap-3">
+                    <div className="p-1.5 md:p-2 bg-blue-200 rounded-lg">
+                      <div className="w-5 h-5 md:w-6 md:h-6 text-blue-600">💧</div>
           </div>
-                Προβολή Όλων των Μαθημάτων
-              </button>
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-1 text-sm md:text-base">Υδάτωση</h4>
+                      <p className="text-xs md:text-sm text-gray-600">Πίνε 2-3 λίτρα νερό καθημερινά για βέλτιστη υγεία και ενέργεια</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Protein Tip */}
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg md:rounded-xl p-3 md:p-4 border border-green-200 hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-start gap-2 md:gap-3">
+                    <div className="p-1.5 md:p-2 bg-green-200 rounded-lg">
+                      <div className="w-5 h-5 md:w-6 md:h-6 text-green-600">🥩</div>
+                  </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-1 text-sm md:text-base">Πρωτεΐνη</h4>
+                      <p className="text-xs md:text-sm text-gray-600">Καταναλώνε 1.6-2.2g πρωτεΐνης ανά kg σωματικού βάρους</p>
+                  </div>
+                </div>
+              </div>
+
+                {/* Sleep Tip */}
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg md:rounded-xl p-3 md:p-4 border border-purple-200 hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-start gap-2 md:gap-3">
+                    <div className="p-1.5 md:p-2 bg-purple-200 rounded-lg">
+                      <div className="w-5 h-5 md:w-6 md:h-6 text-purple-600">😴</div>
+          </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-1 text-sm md:text-base">Ύπνος</h4>
+                      <p className="text-xs md:text-sm text-gray-600">7-9 ώρες ποιοτικού ύπνου για ανάκαμψη και ανάπτυξη</p>
+        </div>
+      </div>
+                </div>
+
+                {/* Exercise Tip */}
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg md:rounded-xl p-3 md:p-4 border border-orange-200 hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-start gap-2 md:gap-3">
+                    <div className="p-1.5 md:p-2 bg-orange-200 rounded-lg">
+                      <div className="w-5 h-5 md:w-6 md:h-6 text-orange-600">🏃</div>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-1 text-sm md:text-base">Άσκηση</h4>
+                      <p className="text-xs md:text-sm text-gray-600">150 λεπτά μέτριας έντασης άσκησης εβδομαδιαίως</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Nutrition Tip */}
+                <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg md:rounded-xl p-3 md:p-4 border border-red-200 hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-start gap-2 md:gap-3">
+                    <div className="p-1.5 md:p-2 bg-red-200 rounded-lg">
+                      <div className="w-5 h-5 md:w-6 md:h-6 text-red-600">🥗</div>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-1 text-sm md:text-base">Διατροφή</h4>
+                      <p className="text-xs md:text-sm text-gray-600">Φρέσκα φρούτα και λαχανικά σε κάθε γεύμα</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recovery Tip */}
+                <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg md:rounded-xl p-3 md:p-4 border border-indigo-200 hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-start gap-2 md:gap-3">
+                    <div className="p-1.5 md:p-2 bg-indigo-200 rounded-lg">
+                      <div className="w-5 h-5 md:w-6 md:h-6 text-indigo-600">🧘</div>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-1 text-sm md:text-base">Ανάκαμψη</h4>
+                      <p className="text-xs md:text-sm text-gray-600">Διαλείμματα ανάμεσα στις προπονήσεις για αποτελεσματικότητα</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
     </div>
           </MobileCollapsibleSection>
         </div>
